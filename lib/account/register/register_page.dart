@@ -1,7 +1,11 @@
+import 'package:chat/common/chat_service.dart';
+import 'package:chat/common/widgets.dart';
 import 'package:flutter/material.dart';
-
-import '../../common/widgets.dart';
-import '../login/login_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../chat/chat_page.dart';
+import 'register_cubit.dart';
+import 'register_form.dart';
+import 'register_state.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
@@ -12,35 +16,21 @@ class RegisterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
-      body: Form(
-        child: ListView(
-          padding: formPadding,
-          children: [
-            TextFormField(
-              decoration: const InputDecoration(label: Text('Email')),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const FormSpacer(),
-            TextFormField(
-              obscureText: true,
-              decoration: const InputDecoration(label: Text('Password')),
-            ),
-            const FormSpacer(),
-            TextFormField(
-              decoration: const InputDecoration(label: Text('Username')),
-            ),
-            const FormSpacer(),
-            ElevatedButton(onPressed: () {}, child: const Text('Register')),
-            const FormSpacer(),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).push(LoginPage.route());
-              },
-              child: const Text('I already have an account'),
-            ),
-          ],
+    return BlocProvider(
+      create: (context) => RegisterCubit(context.read<ChatService>()),
+      child: BlocListener<RegisterCubit, RegisterState>(
+        listener: (context, state) {
+          if (state is Registered) {
+            Navigator.of(
+              context,
+            ).pushAndRemoveUntil(ChatPage.route(), (route) => false);
+          } else if (state is RegisterError) {
+            context.showErrorSnackBar(message: state.message);
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(title: const Text('Register')),
+          body: RegisterForm(),
         ),
       ),
     );

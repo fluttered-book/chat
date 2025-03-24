@@ -20,3 +20,24 @@ class FormSpacer extends StatelessWidget {
 
 /// Some padding for all the forms to use
 const formPadding = EdgeInsets.symmetric(vertical: 20, horizontal: 16);
+
+/// Error message to display the user when unexpected error occurs.
+const unexpectedErrorMessage = 'Unexpected error occurred.';
+
+/// Set of extension methods to easily display a snackbar
+extension ShowSnackBar on BuildContext {
+  /// Displays a basic snackbar
+  void showSnackBar({
+    required String message,
+    Color backgroundColor = Colors.white,
+  }) {
+    ScaffoldMessenger.of(this).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: backgroundColor),
+    );
+  }
+
+  /// Displays a red snackbar indicating error
+  void showErrorSnackBar({required String message}) {
+    showSnackBar(message: message, backgroundColor: Colors.red);
+  }
+}
