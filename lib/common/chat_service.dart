@@ -1,3 +1,4 @@
+import 'package:chat/models/models.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class ChatService {
@@ -9,6 +10,9 @@ abstract class ChatService {
     required String username,
   });
   Future<void> logout();
+  Stream<List<Message>> messageStream();
+  Future<void> submitMessage(String text);
+  Future<Profile> fetchProfile(String id);
 }
 
 class SupabaseChatService extends ChatService {
@@ -37,5 +41,30 @@ class SupabaseChatService extends ChatService {
   @override
   Future<void> logout() async {
     await _supabase.auth.signOut();
+  }
+
+  @override
+  Stream<List<Message>> messageStream() {
+    return _supabase
+        .from('messages')
+        .stream(primaryKey: ['id'])
+        .order('created_at')
+        .map((maps) => maps.map((map) => MessageMapper.fromMap(map)).toList());
+  }
+
+  @override
+  Future<void> submitMessage(String text) async {
+    final myUserId = _supabase.auth.currentUser!.id;
+    await _supabase.from('messages').insert({
+      'profile_id': myUserId,
+      'content': text,
+    });
+  }
+
+  @override
+  Future<Profile> fetchProfile(String id) async {
+    final data =
+        await _supabase.from('profiles').select().eq('id', id).single();
+    return ProfileMapper.fromMap(data);
   }
 }
