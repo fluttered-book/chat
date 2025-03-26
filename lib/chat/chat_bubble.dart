@@ -8,47 +8,70 @@ import '../common/widgets.dart';
 import '../models/models.dart';
 
 class ChatBubble extends StatelessWidget {
-  const ChatBubble({super.key, required this.message, required this.profile});
-
   final Message message;
   final Profile? profile;
+
+  const ChatBubble({super.key, required this.message, required this.profile});
+
+  static final padding = EdgeInsets.symmetric(horizontal: 8, vertical: 18);
+  static final space = SizedBox(width: 12);
+  static final sideSpace = SizedBox(width: 60);
 
   @override
   Widget build(BuildContext context) {
     final isMine = context.read<ChatService>().userId == message.profileId;
-    List<Widget> chatContents = [
-      if (!isMine)
-        CircleAvatar(
-          child:
-              profile == null
-                  ? Spinner()
-                  : Text(profile!.username.substring(0, 2)),
-        ),
-      const SizedBox(width: 12),
-      Flexible(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: isMine ? Theme.of(context).primaryColor : Colors.grey[300],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(message.content),
-        ),
-      ),
-      const SizedBox(width: 12),
-      Text(format(message.createdAt, locale: 'en_short')),
-      const SizedBox(width: 60),
-    ];
-    if (isMine) {
-      chatContents = chatContents.reversed.toList();
-    }
+    return isMine ? _buildMine(context) : _buildOther(context);
+  }
+
+  Widget _buildMine(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+      padding: padding,
       child: Row(
-        mainAxisAlignment:
-            isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: chatContents,
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          sideSpace,
+          timeAgo,
+          space,
+          text(color: Theme.of(context).primaryColor),
+          space,
+        ],
       ),
     );
   }
+
+  Widget _buildOther(BuildContext context) {
+    return Padding(
+      padding: padding,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          avatar,
+          space,
+          text(color: Colors.grey[300]!),
+          space,
+          timeAgo,
+          sideSpace,
+        ],
+      ),
+    );
+  }
+
+  Widget text({required Color color}) {
+    return Flexible(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(message.content),
+      ),
+    );
+  }
+
+  Widget get timeAgo => Text(format(message.createdAt, locale: 'en_short'));
+  Widget get avatar => CircleAvatar(
+    child:
+        profile == null ? Spinner() : Text(profile!.username.substring(0, 2)),
+  );
 }
